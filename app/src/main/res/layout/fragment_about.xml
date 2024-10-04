@@ -6,17 +6,74 @@
     android:layout_height="match_parent"
     tools:context=".ui.about.AboutFragment">
 
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/center_image"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        app:shapeAppearanceOverlay="@style/RoundedCorners"
+        android:src="@drawable/jkearnsl_static"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        tools:ignore="MissingConstraints" />
+
     <TextView
-        android:id="@+id/text_about"
-        android:layout_width="match_parent"
+        android:id="@+id/author_name"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
+        android:text="@string/author_name"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/center_image" />
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/policy_description"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/author_name" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/description"
+        app:layout_constraintBottom_toTopOf="@id/copyright_text"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/policy_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/policy_text"
+            android:textSize="16sp"
+            android:gravity="left"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textIsSelectable="true"/>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/copyright_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/copyright"
+        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
