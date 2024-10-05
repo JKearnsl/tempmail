@@ -22,12 +22,15 @@ class MessageAdapter(context: Context, @LayoutRes private val layoutResource: In
 
         val message = messages[position]
 
-        val avatarImageView = view.findViewById<ImageView>(R.id.avatar)
+        val avatarTextView = view.findViewById<TextView>(R.id.avatar)
         val subjectTextView = view.findViewById<TextView>(R.id.subject)
         val emailTextView = view.findViewById<TextView>(R.id.email)
         val dateTextView = view.findViewById<TextView>(R.id.date)
 
-        avatarImageView.setImageDrawable(ContextCompat.getDrawable(context, message.avatar))
+        // Set the first letter of the email as the text of the avatar TextView
+        avatarTextView.text = message.email.first().toString().uppercase()
+        avatarTextView.background = ContextCompat.getDrawable(context, R.drawable.circle_background)
+
         subjectTextView.text = message.subject
         emailTextView.text = message.email
         dateTextView.text = message.date
