@@ -1,5 +1,7 @@
 package com.jkearnsl.tempmail
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.IOException
@@ -11,41 +13,42 @@ class Api {
     private val client = OkHttpClient()
     private val baseUrl = "https://www.1secmail.com/api/v1/"
 
-    // Method to generate a random email address
-    fun generateRandomEmail(): String {
-        val url = "$baseUrl?action=genRandomMailbox"
-        val request = Request.Builder().url(url).build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unexpected code $response")
-            val jsonArray = JSONArray(response.body?.string())
-            return jsonArray.getString(0)
+    suspend fun generateRandomEmail(): String {
+        return withContext(Dispatchers.IO) {
+            val url = "$baseUrl?action=genRandomMailbox"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                val jsonArray = JSONArray(response.body?.string())
+                jsonArray.getString(0)
+            }
         }
     }
 
-    // Method to get messages from an email
-    fun getMessages(email: String): List<Map<String, Any>> {
-        val (login, domain) = email.split("@")
-        val url = "$baseUrl?action=getMessages&login=$login&domain=$domain"
-        val request = Request.Builder().url(url).build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unexpected code $response")
-            val jsonArray = JSONArray(response.body?.string())
-            val messages = mutableListOf<Map<String, Any>>()
-            for (i in 0 until jsonArray.length()) {
-                val jsonObject = jsonArray.getJSONObject(i)
-                val message = mapOf(
+    suspend fun getMessages(email: String): List<Map<String, Any>> {
+        return withContext(Dispatchers.IO) {
+            val (login, domain) = email.split("@")
+            val url = "$baseUrl?action=getMessages&login=$login&domain=$domain"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                val jsonArray = JSONArray(response.body?.string())
+                val messages = mutableListOf<Map<String, Any>>()
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val message = mapOf(
                         "id" to jsonObject.getInt("id"),
                         "from" to jsonObject.getString("from"),
                         "subject" to jsonObject.getString("subject"),
                         "date" to jsonObject.getString("date")
-                )
-                messages.add(message)
+                    )
+                    messages.add(message)
+                }
+                messages
             }
-            return messages
         }
     }
 
-    // Method to fetch a single message
     fun fetchMessage(email: String, id: Int): Map<String, Any> {
         val (login, domain) = email.split("@")
         val url = "$baseUrl?action=readMessage&login=$login&domain=$domain&id=$id"
@@ -76,7 +79,6 @@ class Api {
         }
     }
 
-    // Method to download an attachment
     fun downloadAttachment(email: String, id: Int, fileName: String): ByteArray {
         val (login, domain) = email.split("@")
         val url = "$baseUrl?action=download&login=$login&domain=$domain&id=$id&file=$fileName"
