@@ -13,6 +13,9 @@ import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.annotation.NonNull
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
+import androidx.fragment.app.FragmentActivity
+import androidx.navigation.fragment.NavHostFragment
 import com.jkearnsl.tempmail.R
 import java.util.Date
 import java.util.Locale
@@ -42,6 +45,13 @@ class MessageAdapter(context: Context, @LayoutRes private val layoutResource: In
         subjectTextView.text = message.subject
         emailTextView.text = message.email
         dateTextView.text = formatDate(message.date)
+
+        view.setOnClickListener {
+            val bundle = bundleOf("message" to message)
+            val activity = context as FragmentActivity
+            val navHostFragment = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+            navHostFragment.navController.navigate(R.id.messageDetailFragment, bundle)
+        }
 
         return view
     }
