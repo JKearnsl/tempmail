@@ -1,6 +1,8 @@
 package com.jkearnsl.tempmail.ui.messages
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +18,8 @@ class MessagesFragment : Fragment() {
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding get() = _binding!!
+    private lateinit var handler: Handler
+    private lateinit var refreshRunnable: Runnable
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,9 +40,15 @@ class MessagesFragment : Fragment() {
         )
         listView.adapter = adapter
 
-        lifecycleScope.launch {
-            app.core.refreshMessages()
-            adapter.notifyDataSetChanged()
+        handler = Handler(Looper.getMainLooper())
+        refreshRunnable = object : Runnable {
+            override fun run() {
+                lifecycleScope.launch {
+                    app.core.refreshMessages()
+                    adapter.notifyDataSetChanged()
+                }
+                handler.postDelayed(this, 5000)
+            }
         }
 
         val swipeRefreshLayout = binding.swipeRefreshLayout
@@ -50,7 +60,18 @@ class MessagesFragment : Fragment() {
             }
         }
 
+
         return root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        handler.post(refreshRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(refreshRunnable)
     }
 
     override fun onDestroyView() {
