@@ -22,4 +22,10 @@
         android:name="com.jkearnsl.tempmail.ui.about.AboutFragment"
         android:label="@string/menu_about"
         tools:layout="@layout/fragment_about" />
+
+    <fragment
+        android:id="@+id/messageDetailFragment"
+        android:name="com.jkearnsl.tempmail.ui.messages.MessageDetailFragment"
+        android:label="Message Detail"
+        tools:layout="@layout/fragment_message_detail" />
 </navigation>
