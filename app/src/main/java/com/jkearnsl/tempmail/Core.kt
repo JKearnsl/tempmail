@@ -1,9 +1,12 @@
 package com.jkearnsl.tempmail
 
 import android.content.SharedPreferences
+import android.icu.text.SimpleDateFormat
+import android.icu.util.TimeZone
 import com.jkearnsl.tempmail.ui.messages.Message
 import okio.IOException
 import org.json.JSONObject
+import java.util.Locale
 
 class Core() {
 
@@ -15,13 +18,18 @@ class Core() {
         this.sharedPreferences = sharedPreferences
         sharedPreferences.getStringSet("last_messages", emptySet())?.mapNotNull { messageString ->
             val message = JSONObject(messageString)
+
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("GMT")
+            val date = dateFormat.parse(message.getString("date"))
+
             Message(
                 message.getInt("id"),
                 message.getString("subject"),
                 message.getString("from"),
-                message.getString("date")
+                date
             )
-        }?.let { messages.addAll(it) }
+        }?.sortedBy { it.date }?.reversed()?.let { messages.addAll(it) }
     }
 
     suspend fun currentEmail(): String {
@@ -60,13 +68,18 @@ class Core() {
             ).apply()
             this.messages.clear()
             this.messages.addAll(newMessages.map { message ->
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                dateFormat.timeZone = TimeZone.getTimeZone("GMT")
+                val date = dateFormat.parse(message["date"] as String)
+
                 Message(
                     message["id"] as Int,
                     message["subject"] as String,
                     message["from"] as String,
-                    message["date"] as String
+                    date
                 )
             })
+            this.messages.sortByDescending { it.date }
         } catch (e: IOException) {
             // Do nothing
         }
