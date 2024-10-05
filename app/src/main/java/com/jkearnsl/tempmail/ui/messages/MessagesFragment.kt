@@ -6,8 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.jkearnsl.tempmail.R
+import com.jkearnsl.tempmail.TempMail
 import com.jkearnsl.tempmail.databinding.FragmentMessagesBinding
+import kotlinx.coroutines.launch
 
 class MessagesFragment : Fragment() {
 
@@ -24,23 +27,27 @@ class MessagesFragment : Fragment() {
         val root: View = binding.root
 
         val listView = binding.messagesListView
-        val messages = mutableListOf(
-            Message(R.drawable.ic_menu_slideshow, "Subject 1", "Email content 1", "Date 1"),
-            Message(R.drawable.ic_launcher_background, "Subject 2", "Email content 2", "Date 2"),
+        val app = requireActivity().application as TempMail
+
+        val adapter = MessageAdapter(
+            requireContext(),
+            R.layout.list_item_message,
+            app.core.messages
         )
-        val adapter = MessageAdapter(requireContext(), R.layout.list_item_message, messages)
         listView.adapter = adapter
+
+        lifecycleScope.launch {
+            app.core.refreshMessages()
+            adapter.notifyDataSetChanged()
+        }
 
         val swipeRefreshLayout = binding.swipeRefreshLayout
         swipeRefreshLayout.setOnRefreshListener {
-            val refreshedMessages = listOf(
-                Message(R.drawable.ic_menu_camera, "Refreshed Subject 1", "Refreshed Email content 1", "Refreshed Date 1"),
-                Message(R.drawable.ic_menu_gallery, "Refreshed Subject 2", "Refreshed Email content 2", "Refreshed Date 2"),
-            )
-            messages.clear()
-            messages.addAll(refreshedMessages)
-            adapter.notifyDataSetChanged()
-            swipeRefreshLayout.isRefreshing = false
+            lifecycleScope.launch {
+                app.core.refreshMessages()
+                adapter.notifyDataSetChanged()
+                swipeRefreshLayout.isRefreshing = false
+            }
         }
 
         return root
