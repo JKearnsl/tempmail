@@ -3,7 +3,9 @@ package com.jkearnsl.tempmail
 import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
 import android.icu.util.TimeZone
+import com.jkearnsl.tempmail.ui.messages.Attachment
 import com.jkearnsl.tempmail.ui.messages.Message
+import com.jkearnsl.tempmail.ui.messages.MessageItem
 import okio.IOException
 import org.json.JSONObject
 import java.util.Locale
@@ -12,7 +14,7 @@ class Core() {
 
     private lateinit var sharedPreferences: SharedPreferences
     private val api = Api()
-    public val messages = mutableListOf<Message>()
+    public val messages = mutableListOf<MessageItem>()
 
     constructor(sharedPreferences: SharedPreferences): this() {
         this.sharedPreferences = sharedPreferences
@@ -23,7 +25,7 @@ class Core() {
             dateFormat.timeZone = TimeZone.getTimeZone("GMT")
             val date = dateFormat.parse(message.getString("date"))
 
-            Message(
+            MessageItem(
                 message.getInt("id"),
                 message.getString("subject"),
                 message.getString("from"),
@@ -72,7 +74,7 @@ class Core() {
                 dateFormat.timeZone = TimeZone.getTimeZone("GMT")
                 val date = dateFormat.parse(message["date"] as String)
 
-                Message(
+                MessageItem(
                     message["id"] as Int,
                     message["subject"] as String,
                     message["from"] as String,
@@ -85,15 +87,60 @@ class Core() {
         }
     }
 
-    fun fetchMessage(email: String, id: Int): Map<String, Any> {
-        return emptyMap()
-    }
+    suspend fun getMessage(messageId: Int): Message {
+        val email = sharedPreferences.getString("current_email", "null")?: "null"
+        if (email == "null") {
+            return Message(0, "", "", java.util.Date(), "", emptyList())
+        }
 
-    fun fetchAttachment(email: String, id: Int, attachmentId: Int): ByteArray {
-        return ByteArray(0)
-    }
+        val messageString = sharedPreferences.getString(messageId.toString(), null)
+        if (messageString != null) {
 
-    fun deleteAttachment(email: String, id: Int, attachmentId: Int): Boolean {
-        return false
+            val message = JSONObject(messageString)
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("GMT")
+            val date = dateFormat.parse(message.getString("date"))
+
+            return Message(
+                message.getInt("id"),
+                message.getString("subject"),
+                message.getString("from"),
+                date,
+                message.getString("body"),
+                message.getJSONArray("attachments").let { array ->
+                        List(array.length()) { i ->
+                            val attachment = array.getJSONObject(i)
+                            Attachment(
+                                attachment.getString("filename"),
+                                attachment.getInt("size"),
+                                attachment.getString("contentType")
+                            )
+                        }
+                    }
+                )
+        }
+
+        try {
+            val message = api.fetchMessage(email, messageId)
+            sharedPreferences.edit().putString(
+                messageId.toString(),
+                JSONObject(message).toString()
+            ).apply()
+
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("GMT")
+            val date = dateFormat.parse(message["date"] as String)
+
+            return Message(
+                message["id"] as Int,
+                message["subject"] as String,
+                message["from"] as String,
+                date,
+                message["body"] as String,
+                message["attachments"] as List<Attachment>
+            )
+        } catch (e: IOException) {
+            return Message(0, "", "", java.util.Date(), "", emptyList())
+        }
     }
 }
