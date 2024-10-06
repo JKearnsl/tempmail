@@ -1,10 +1,7 @@
 package com.jkearnsl.tempmail.ui.messages
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.icu.text.SimpleDateFormat
-import android.icu.util.Calendar
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +14,9 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.jkearnsl.tempmail.R
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
-class MessageAdapter(context: Context, @LayoutRes private val layoutResource: Int, private val messages: List<Message>) :
-    ArrayAdapter<Message>(context, layoutResource, messages) {
+class MessageAdapter(context: Context, @LayoutRes private val layoutResource: Int, private val messages: List<MessageItem>) :
+    ArrayAdapter<MessageItem>(context, layoutResource, messages) {
 
     @NonNull
     override fun getView(position: Int, convertView: View?, @NonNull parent: ViewGroup): View {
@@ -47,53 +41,12 @@ class MessageAdapter(context: Context, @LayoutRes private val layoutResource: In
         dateTextView.text = formatDate(message.date)
 
         view.setOnClickListener {
-            val bundle = bundleOf("message" to message)
+            val bundle = bundleOf("messageId" to message.id)
             val activity = context as FragmentActivity
             val navHostFragment = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
             navHostFragment.navController.navigate(R.id.messageDetailFragment, bundle)
         }
 
         return view
-    }
-
-    private fun generateColorFromEmail(email: String): Int {
-        val hash = email.hashCode()
-        val r = (hash and 0xFF0000) shr 16
-        val g = (hash and 0x00FF00) shr 8
-        val b = (hash and 0x0000FF)
-        return Color.rgb(r, g, b)
-    }
-
-    private fun formatDate(date: Date): String {
-        val now = Calendar.getInstance().time
-        val diff = now.time - date.time
-
-        return when {
-            TimeUnit.MILLISECONDS.toDays(diff) < 1 -> {
-                val hours = date.hours.toString().padStart(2, '0')
-                val minutes = date.minutes.toString().padStart(2, '0')
-
-                when {
-                    TimeUnit.MILLISECONDS.toMinutes(diff) < 1 -> {
-                        if (Locale.getDefault().language == "ru") {
-                            "Только что"
-                        } else {
-                            "Just now"
-                        }
-                    }
-                    else -> {
-                        "$hours:$minutes"
-                    }
-                }
-            }
-            date.month == now.month && date.year == now.year -> {
-                val outputFormat = SimpleDateFormat("dd MMMM", Locale.getDefault())
-                outputFormat.format(date)
-            }
-            else -> {
-                val outputFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-                outputFormat.format(date)
-            }
-        }
     }
 }
