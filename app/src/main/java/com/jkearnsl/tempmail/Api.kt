@@ -49,24 +49,25 @@ class Api {
         }
     }
 
-    fun fetchMessage(email: String, id: Int): Map<String, Any> {
-        val (login, domain) = email.split("@")
-        val url = "$baseUrl?action=readMessage&login=$login&domain=$domain&id=$id"
-        val request = Request.Builder().url(url).build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unexpected code $response")
-            val jsonObject = JSONObject(response.body?.string())
-            val attachments = jsonObject.getJSONArray("attachments").let { array ->
+    suspend fun fetchMessage(email: String, id: Int): Map<String, Any> {
+        return withContext(Dispatchers.IO) {
+            val (login, domain) = email.split("@")
+            val url = "$baseUrl?action=readMessage&login=$login&domain=$domain&id=$id"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                val jsonObject = JSONObject(response.body?.string())
+                val attachments = jsonObject.getJSONArray("attachments").let { array ->
                     List(array.length()) { i ->
-                    val attachment = array.getJSONObject(i)
+                        val attachment = array.getJSONObject(i)
+                        mapOf(
+                            "filename" to attachment.getString("filename"),
+                            "contentType" to attachment.getString("contentType"),
+                            "size" to attachment.getInt("size")
+                        )
+                    }
+                }
                 mapOf(
-                        "filename" to attachment.getString("filename"),
-                        "contentType" to attachment.getString("contentType"),
-                        "size" to attachment.getInt("size")
-                )
-            }
-            }
-            return mapOf(
                     "id" to jsonObject.getInt("id"),
                     "from" to jsonObject.getString("from"),
                     "subject" to jsonObject.getString("subject"),
@@ -75,7 +76,8 @@ class Api {
                     "body" to jsonObject.getString("body"),
                     "textBody" to jsonObject.getString("textBody"),
                     "htmlBody" to jsonObject.getString("htmlBody")
-            )
+                )
+            }
         }
     }
 
