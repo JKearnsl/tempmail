@@ -19,18 +19,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:endIconMode="custom"
-            app:endIconDrawable="@drawable/baseline_regen">
+            app:endIconDrawable="@drawable/baseline_reload">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="16dp"
                 android:clickable="true"
                 android:contextClickable="true"
                 android:cursorVisible="false"
                 android:editable="false"
-                android:textIsSelectable="true"
-                android:text="@string/app_name" />
+                android:text="@string/app_name"
+                android:textIsSelectable="true" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
